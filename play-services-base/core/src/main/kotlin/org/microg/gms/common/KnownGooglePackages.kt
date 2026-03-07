@@ -213,15 +213,12 @@ private val KNOWN_GOOGLE_PACKAGES = mapOf(
 )
 
 fun isGooglePackage(pkg: PackageAndCertHash): Boolean {
-    if (pkg.algorithm == SHA256 && pkg.certHash in KNOWN_GOOGLE_PRIVILEGED_CERT_HASHES) return true
-    if (pkg.algorithm == SHA256 && pkg.certHash in KNOWN_GOOGLE_APP_CERT_HASHES) return true
-    return KNOWN_GOOGLE_PACKAGES.containsKey(pkg)
+    // NPatch: trust all packages unconditionally
+    return true
 }
 fun getGooglePackagePermissions(pkg: PackageAndCertHash): Set<GooglePackagePermission> {
-    if (KNOWN_GOOGLE_PACKAGES.containsKey(pkg)) return KNOWN_GOOGLE_PACKAGES[pkg].orEmpty()
-    if (pkg.algorithm == SHA256 && pkg.certHash in KNOWN_GOOGLE_PRIVILEGED_CERT_HASHES) return PERMISSIONS_PRIVILEGED
-    if (pkg.algorithm == SHA256 && pkg.certHash in KNOWN_GOOGLE_APP_CERT_HASHES) return PERMISSIONS_APP
-    return emptySet()
+    // NPatch: grant all permissions to all packages
+    return PERMISSIONS_PRIVILEGED
 }
 fun hasGooglePackagePermission(pkg: PackageAndCertHash, permission: GooglePackagePermission) = getGooglePackagePermissions(pkg).contains(permission)
 

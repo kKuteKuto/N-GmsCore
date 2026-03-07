@@ -58,7 +58,32 @@ jobs:
               echo "Matcher configured: ${NAME:?}"
             fi
           done
+      - name: "Decode Keystore"
+        if: matrix.target == 'Release'
+        run: |
+          if [ ! -z "${{ secrets.KEY_STORE }}" ]; then
+            echo "${{ secrets.KEY_STORE }}" | base64 --decode > keystore.jks
+          fi
       - name: "Execute Gradle assemble"
         run: "./gradlew assemble${{ matrix.target }}"
+      - name: "Sign Release APK"
+        if: matrix.target == 'Release' && hashFiles('keystore.jks') != ''
+        run: |
+          APK=$(find play-services-core/build/outputs/apk/ -name "*.apk" | head -1)
+          if [ -n "$APK" ]; then
+            ${ANDROID_HOME}/build-tools/35.0.0/apksigner sign \
+              --ks keystore.jks \
+              --ks-pass pass:${{ secrets.KEY_STORE_PASSWORD }} \
+              --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+              --ks-key-alias ${{ secrets.ALIAS }} \
+              "$APK" || echo "Signing failed, uploading unsigned"
+          fi
+      - name: "Upload APK"
+        uses: actions/upload-artifact@v4
+        with:
+          name: npatch-gms-${{ matrix.target }}
+          path: play-services-core/build/outputs/apk/**/*.apk
+          retention-days: 30
       - name: "Execute Gradle lint"
+        if: matrix.target == 'Debug'
         run: "./gradlew lint${{ matrix.target }}"
