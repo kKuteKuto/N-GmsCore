@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Release
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Cache Gradle
         uses: burrunan/gradle-cache-action@v3
